@@ -1,30 +1,39 @@
-import constanti as keys
 from telegram.ext import *
 import telegram as tg
 from telegram import InputMediaPhoto
-import risposta as r
 import os
-import sys
-bot = tg.Bot(keys.TOKEN)
+bot = tg.Bot('')
 def citaMarco(update, context):
 	testo = str(update.message.text)
-	citazione = testo.replace("/cita", "")
-	os.system("python3 makeImage.py \""+ citazione +"\" temp.png")
-	chat_id = update.message.chat.id
-	msg_id = update.message.message_id
-	fotomaestro = open("temp.png", 'rb')
-	bot.send_photo(chat_id=chat_id, photo=fotomaestro)
-	
+	quote_text = ""
+	reply_to_message = update.message.reply_to_message
+	if reply_to_message is None:
+		if("/cita@citfarenzbot" in testo): quote_text = testo.replace("/cita@citfarenzbot", "")
+		elif ("/cita" in testo ): quote_text = testo.replace("/cita", "")
+		if quote_text != "":
+			os.system("python3 MakeImage.py \""+ quote_text +"\" temp.png")
+			chat_id = update.message.chat.id
+			photo_farenz = open("temp.png", 'rb')
+			bot.send_photo(chat_id=chat_id, photo=photo_farenz)
+		else:
+			update.message.reply_text("Inserisci il testo!")
+	else:	
+		quote_text = reply_to_message.text
+		if quote_text != "":
+			os.system("python3 MakeImage.py \""+ quote_text +"\" temp.png")
+			chat_id = update.message.chat.id
+			photo_farenz = open("temp.png", 'rb')
+			bot.send_photo(chat_id=chat_id, photo=photo_farenz)
+
+def Pane(update, context):
+	chatID = update.message.chat_id
+	bot.send_message(chat_id=chatID, text="Sto funzionando.")
+
 def startCommand(update, context):
 	update.message.reply_text("Scrivi \"/cita Testo che vuoi\"\nper far dire al maestro quello che vuoi")
 
 def helpCommand(update, context):
 	update.message.reply_text("Scrivi \"/cita Testo che vuoi \"per far dire al maestro quello che vuoi")
-
-def handleMessaggio(update, context):
-	text = str(update.message.text).lower()
-	response = r.rispondi(text)
-	update.message.reply_text(response)
 
 def error(update, context):
 	print("ERRORE")
@@ -36,6 +45,7 @@ def main():
 
 	dp.add_handler(CommandHandler("start", startCommand))
 	dp.add_handler(CommandHandler("helpcitfarenz", helpCommand))
+	dp.add_handler(CommandHandler("pane", Pane))
 	dp.add_handler(CommandHandler("cita", citaMarco))
 	dp.add_error_handler(error)
 
